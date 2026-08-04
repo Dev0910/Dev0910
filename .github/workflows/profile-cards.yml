@@ -1,0 +1,53 @@
+name: Update profile metrics
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: profile-metrics
+  cancel-in-progress: true
+
+jobs:
+  update-cards:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out profile repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Generate GitHub stats card
+        uses: stats-organization/github-readme-stats-action@e856fc8de9d7729b463c468911e232cfbdc3d55e
+        with:
+          card: stats
+          options: "username=${{ github.repository_owner }}&show_icons=true&hide_rank=true&theme=transparent&hide_border=true&title_color=22D3EE&text_color=8B949E&icon_color=A78BFA"
+          path: assets/metrics/stats.svg
+          token: ${{ secrets.GITHUB_TOKEN }}
+          core_version: 2.1.5
+          fail_on_error: true
+
+      - name: Generate top languages card
+        uses: stats-organization/github-readme-stats-action@e856fc8de9d7729b463c468911e232cfbdc3d55e
+        with:
+          card: top-langs
+          options: "username=${{ github.repository_owner }}&layout=compact&langs_count=6&hide=ShaderLab,HLSL&size_weight=0.5&count_weight=0.5&theme=transparent&hide_border=true&title_color=22D3EE&text_color=8B949E"
+          path: assets/metrics/top-languages.svg
+          token: ${{ secrets.GITHUB_TOKEN }}
+          core_version: 2.1.5
+          fail_on_error: true
+
+      - name: Commit changed cards
+        shell: bash
+        run: |
+          if git diff --quiet -- assets/metrics/*.svg; then
+            echo "Profile cards are already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- assets/metrics/*.svg
+          git commit -m "chore: refresh profile metrics"
+          git push

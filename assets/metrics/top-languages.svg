@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="180" viewBox="0 0 360 180" role="img" aria-labelledby="title description">
+  <title id="title">Top languages are being generated</title>
+  <desc id="description">A temporary placeholder replaced by the profile metrics workflow before publication.</desc>
+  <rect x="1" y="1" width="358" height="178" rx="10" fill="none" stroke="#30363d" stroke-width="2"/>
+  <text x="24" y="64" fill="#a78bfa" font-family="Segoe UI, sans-serif" font-size="20" font-weight="600">Top Languages</text>
+  <text x="24" y="104" fill="#8b949e" font-family="Segoe UI, sans-serif" font-size="14">Generating authored-language data...</text>
+</svg>

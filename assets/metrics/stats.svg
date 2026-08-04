@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="495" height="180" viewBox="0 0 495 180" role="img" aria-labelledby="title description">
+  <title id="title">GitHub statistics are being generated</title>
+  <desc id="description">A temporary placeholder replaced by the profile metrics workflow before publication.</desc>
+  <rect x="1" y="1" width="493" height="178" rx="10" fill="none" stroke="#30363d" stroke-width="2"/>
+  <text x="28" y="64" fill="#22d3ee" font-family="Segoe UI, sans-serif" font-size="20" font-weight="600">GitHub Stats</text>
+  <text x="28" y="104" fill="#8b949e" font-family="Segoe UI, sans-serif" font-size="14">Generating the first profile snapshot...</text>
+</svg>
