@@ -39,6 +39,13 @@ jobs:
           core_version: 2.1.5
           fail_on_error: true
 
+      - name: Generate contribution activity graph
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROFILE_USER: ${{ github.repository_owner }}
+        run: node .github/scripts/render-contribution-graph.mjs
+
       - name: Commit changed cards
         shell: bash
         run: |
