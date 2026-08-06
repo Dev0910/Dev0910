@@ -36,6 +36,26 @@ I care about responsive mechanics, balanced progression, clear architecture, and
   </tr>
 </table>
 
+## Shipped Product
+
+<table>
+  <tr>
+    <td width="32%" align="center" valign="middle">
+      <a href="https://github.com/Dev0910/premier-cricket-go-portfolio"><img src="assets/projects/premier-cricket-go-icon.png" alt="Premier Cricket GO app icon" width="190"></a>
+    </td>
+    <td width="68%" valign="top">
+      <h3><a href="https://github.com/Dev0910/premier-cricket-go-portfolio">Premier Cricket GO</a></h3>
+      <p>A tactical, card-driven Android cricket game by Playing Human Studio. The public beta features 60+ Jokers, 45+ collectible players, layered progression, and 5K+ Google Play downloads.</p>
+      <p><strong>My contribution:</strong> Designed and implemented the metagame and platform-integration layer, including progression and economy systems, Firebase-backed player data, Google sign-in, rewarded ads, Unity IAP, validated Remote Config catalogs, Addressables content delivery, and multi-provider analytics.</p>
+      <p><sub><strong>Role:</strong> Unity Game Systems Developer · <strong>Studio:</strong> Playing Human Studio</sub></p>
+      <p>
+        <a href="https://github.com/Dev0910/premier-cricket-go-portfolio"><img src="https://img.shields.io/badge/Engineering_Case_Study-Read-22D3EE?style=flat-square&logo=github&logoColor=111827" alt="Read the Premier Cricket GO engineering case study"></a>
+        <a href="https://play.google.com/store/apps/details?id=com.playingHumanGames.premierCricketGO1"><img src="https://img.shields.io/badge/Google_Play-5K%2B_downloads-3DDC84?style=flat-square&logo=googleplay&logoColor=111827" alt="Premier Cricket GO on Google Play"></a>
+      </p>
+    </td>
+  </tr>
+</table>
+
 ## Featured Projects
 
 <table>
@@ -99,7 +119,7 @@ I care about responsive mechanics, balanced progression, clear architecture, and
     </td>
     <td width="50%" align="center" valign="top">
       <strong>Tools &amp; Platforms</strong><br><br>
-      <img src="https://skillicons.dev/icons?i=git,github,visualstudio,androidstudio" alt="Git, GitHub, Visual Studio and Android Studio" height="48"><br>
+      <img src="https://skillicons.dev/icons?i=git,github,visualstudio,androidstudio,firebase" alt="Git, GitHub, Visual Studio, Android Studio and Firebase" height="48"><br>
       <img src="https://img.shields.io/badge/AR%2FVR-Interaction_Development-7C3AED?style=flat-square" alt="AR and VR interaction development">
     </td>
   </tr>
@@ -113,7 +133,7 @@ I care about responsive mechanics, balanced progression, clear architecture, and
       <strong>Experience</strong>
       <ul>
         <li><strong>Unity Game Developer</strong>, Playing Human Studio — Dec 2024 to present</li>
-        <li>Contributed to <a href="https://play.google.com/store/apps/details?id=com.playingHumanGames.premierCricketGO1">Premier Cricket GO! (Beta)</a></li>
+        <li>Designed and implemented metagame and platform integrations for <a href="https://github.com/Dev0910/premier-cricket-go-portfolio">Premier Cricket GO</a> (<a href="https://play.google.com/store/apps/details?id=com.playingHumanGames.premierCricketGO1">Google Play beta</a>)</li>
         <li><strong>Visiting Faculty</strong> for Unity AR/VR at Thakur College</li>
       </ul>
     </td>
