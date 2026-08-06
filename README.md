@@ -75,10 +75,10 @@ I care about responsive mechanics, balanced progression, clear architecture, and
   </tr>
   <tr>
     <td width="50%" valign="top">
-      <a href="https://github.com/Dev0910/ChaiEmpire"><img src="assets/projects/cards/chai-empire-card.png" alt="Chai Empire incremental game interface" width="100%"></a>
-      <h3 align="center"><a href="https://github.com/Dev0910/ChaiEmpire">Chai Empire</a></h3>
-      <p>Unity 6 Android clicker about growing a street chai stall through upgrades, automation, and prestige.</p>
-      <p><sub><strong>Stack:</strong> Unity 6, C#, Android · <strong>Quality:</strong> 33 EditMode tests</sub></p>
+      <a href="https://github.com/Dev0910/Ping-Pong"><img src="assets/projects/cards/ping-pong-card.jpg" alt="Stylized Ping Pong table artwork" width="100%"></a>
+      <h3 align="center"><a href="https://github.com/Dev0910/Ping-Pong">Ping Pong</a></h3>
+      <p>Unity 6 single-player Pong with three difficulty modes, position-based rebounds, and persistent local leaderboards.</p>
+      <p><sub><strong>Stack:</strong> Unity 6, C#, Windows · <strong>Systems:</strong> AI paddle, JSON leaderboards</sub></p>
     </td>
     <td width="50%" valign="top">
       <a href="https://github.com/Dev0910/Unity-ML-Agents-Food-Collector"><img src="assets/projects/cards/ml-agents-card.png" alt="Parallel Unity ML-Agents food collector training environments" width="100%"></a>
@@ -91,9 +91,9 @@ I care about responsive mechanics, balanced progression, clear architecture, and
 
 ## More Projects
 
-| [Super Tic Tac Toe](https://github.com/Dev0910/Super-Tic-Tac-Toe) | [Ping Pong](https://github.com/Dev0910/Ping-Pong) | [Vicket](https://github.com/Dev0910/Vicket) |
+| [Super Tic Tac Toe](https://github.com/Dev0910/Super-Tic-Tac-Toe) | [Chai Empire](https://github.com/Dev0910/ChaiEmpire) | [Vicket](https://github.com/Dev0910/Vicket) |
 | :---: | :---: | :---: |
-| Local multiplayer and a Minimax opponent | Three difficulties and persistent local leaderboards | Forked VR cricket project |
+| Local multiplayer and a Minimax opponent | Android incremental game with upgrades, automation, and prestige | Forked VR cricket project |
 
 ## Tech Stack
 
