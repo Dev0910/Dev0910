@@ -1,5 +1,11 @@
 <p align="center">
-  <img src="assets/dev-patel-dashboard-banner.png" alt="Hi, I'm Dev Patel — Unity Game Developer" width="100%">
+  <picture>
+    <source media="(prefers-reduced-motion: reduce)" srcset="https://raw.githubusercontent.com/Dev0910/Dev0910/profile-assets/space-shooter-static.png">
+    <source type="image/webp" srcset="https://raw.githubusercontent.com/Dev0910/Dev0910/profile-assets/space-shooter.webp">
+    <img src="https://raw.githubusercontent.com/Dev0910/Dev0910/profile-assets/space-shooter-static.png"
+         alt="Animated cyan-and-purple space shooter spelling DEV PATEL; a pixel-art Unity ship clears blocks powered by Dev Patel's public GitHub contribution activity."
+         width="100%">
+  </picture>
 </p>
 
 <p align="center">
@@ -156,18 +162,6 @@ I care about responsive mechanics, balanced progression, clear architecture, and
     <td width="50%"><img src="assets/metrics/top-languages.svg" alt="Most used authored languages across Dev Patel's public repositories" width="100%"></td>
   </tr>
 </table>
-
-### Contribution Space Shooter
-
-<p align="center">
-  <picture>
-    <source media="(prefers-reduced-motion: reduce)" srcset="https://raw.githubusercontent.com/Dev0910/Dev0910/profile-assets/space-shooter-static.png">
-    <source type="image/webp" srcset="https://raw.githubusercontent.com/Dev0910/Dev0910/profile-assets/space-shooter.webp">
-    <img src="https://raw.githubusercontent.com/Dev0910/Dev0910/profile-assets/space-shooter-static.png"
-         alt="Space Shooter visualization of Dev Patel's public GitHub contribution calendar, with contribution cells represented as enemies."
-         width="100%">
-  </picture>
-</p>
 
 ## Let's Build Something That Plays Well
 
