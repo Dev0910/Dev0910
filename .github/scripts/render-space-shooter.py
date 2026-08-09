@@ -8,6 +8,7 @@ import json
 import os
 import random
 from collections.abc import Iterator, Sequence
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -29,6 +30,7 @@ CELL_STEP = CELL_SIZE + CELL_SPACING
 PADDING = 40
 SHIP_TOP = 190
 SHIP_SIZE = 32
+UNITY_LOGO_PATH = Path(__file__).resolve().parents[1] / "assets" / "unity-logo.png"
 
 HOLD_FRAMES = 18
 MOVE_FRAMES = 1
@@ -59,27 +61,6 @@ PIXEL_FONT = {
     "T": ("11111", "00100", "00100", "00100", "00100", "00100", "00100"),
     "V": ("10001", "10001", "10001", "10001", "10001", "01010", "00100"),
 }
-
-# A deliberately small, code-native pixel interpretation of the Unity mark.
-UNITY_MASK = (
-    "...###.###......",
-    "...###.###......",
-    "######...####...",
-    "####......#####.",
-    "####......#####.",
-    "######.########.",
-    "#...######..###.",
-    "#...######..###.",
-    "#.....#.....###.",
-    "#.....#.....###.",
-    "#.....#......##.",
-    ".###..#...##....",
-    ".###..#...##....",
-    ".###########....",
-    "....#####.......",
-    "....#####.......",
-)
-
 
 def _build_word_columns(text: str = WORD) -> tuple[tuple[int, ...], ...]:
     columns: list[tuple[int, ...]] = []
@@ -112,8 +93,19 @@ WORD_BLOCK_COUNT = sum(sum(column) for column in WORD_COLUMNS)
 
 if len(WORD_COLUMNS) != 49 or len(OCCUPIED_COLUMNS) != 40 or WORD_BLOCK_COUNT != 122:
     raise RuntimeError("DEV PATEL pixel-font contract changed unexpectedly")
-if any(len(row) != 16 for row in UNITY_MASK) or len(UNITY_MASK) != 16:
-    raise RuntimeError("Unity pixel mask must be exactly 16x16")
+
+
+@lru_cache(maxsize=1)
+def _unity_logo() -> Any:
+    """Load the profile's crisp Unity badge once for deterministic compositing."""
+    from PIL import Image
+
+    with Image.open(UNITY_LOGO_PATH) as source:
+        if source.format != "PNG" or source.size != (64, 64):
+            raise ValueError("Unity logo must be a 64x64 PNG")
+        return source.convert("RGBA").resize(
+            (SHIP_SIZE, SHIP_SIZE), Image.Resampling.LANCZOS
+        )
 
 
 def _parse_args() -> argparse.Namespace:
@@ -279,20 +271,15 @@ def _draw_word(
             draw.line((x + 2, y + 1, x + CELL_SIZE - 2, y + 1), fill=highlight)
 
 
-def _draw_unity_ship(draw: Any, center_x: float) -> None:
+def _draw_unity_ship(image: Any, draw: Any, center_x: float) -> None:
     left = round(center_x - SHIP_SIZE / 2)
-    for row, pixels in enumerate(UNITY_MASK):
-        for column, enabled in enumerate(pixels):
-            if enabled == "#":
-                x = left + column * 2
-                y = SHIP_TOP + row * 2
-                draw.rectangle((x, y, x + 1, y + 1), fill=CYAN)
-
     center = round(center_x)
     draw.polygon(
         ((center - 4, SHIP_TOP + 29), (center + 4, SHIP_TOP + 29), (center, HEIGHT - 1)),
         fill=PURPLE,
     )
+    logo = _unity_logo()
+    image.paste(logo, (left, SHIP_TOP), logo)
 
 
 def _draw_bullet(draw: Any, column: int, row: int, phase: int) -> None:
@@ -347,7 +334,7 @@ def render_frame(
     if explosion is not None:
         column, row, phase = explosion
         _draw_explosion(draw, column, row, levels[column], phase)
-    _draw_unity_ship(draw, ship_center_x)
+    _draw_unity_ship(image, draw, ship_center_x)
     return image
 
 

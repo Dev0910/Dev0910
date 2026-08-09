@@ -89,14 +89,26 @@ class WordmarkTests(unittest.TestCase):
                     render_space_shooter.BACKGROUND,
                 )
 
-        color_counts = {
-            color: count
-            for count, color in frame.getcolors(
-                maxcolors=render_space_shooter.WIDTH * render_space_shooter.HEIGHT
+        unity_logo = render_space_shooter._unity_logo()
+        self.assertEqual(unity_logo.mode, "RGBA")
+        self.assertEqual(unity_logo.size, (32, 32))
+        ship_center = round(render_space_shooter._column_center(25))
+        ship_region = frame.crop(
+            (
+                ship_center - render_space_shooter.SHIP_SIZE // 2,
+                render_space_shooter.SHIP_TOP,
+                ship_center + render_space_shooter.SHIP_SIZE // 2,
+                render_space_shooter.SHIP_TOP + render_space_shooter.SHIP_SIZE,
             )
-        }
-        cyan_pixels = color_counts.get(render_space_shooter.CYAN, 0)
-        self.assertGreater(cyan_pixels, 25)
+        )
+        non_background_pixels = sum(
+            count
+            for count, color in ship_region.getcolors(
+                maxcolors=render_space_shooter.SHIP_SIZE**2
+            )
+            if color != render_space_shooter.BACKGROUND
+        )
+        self.assertGreater(non_background_pixels, 500)
         first_column, first_row = render_space_shooter.WORD_BLOCKS[0]
         x, y = render_space_shooter._cell_position(first_column, first_row)
         self.assertEqual(
