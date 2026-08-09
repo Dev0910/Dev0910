@@ -169,10 +169,6 @@ I care about responsive mechanics, balanced progression, clear architecture, and
   </picture>
 </p>
 
-<p align="center">
-  <sub>Public GitHub contributions rendered as an arcade replay · Inspired by <a href="https://www.gitskins.com/">GitSkins</a> · Generated with <a href="https://github.com/czl9707/gh-space-shooter">gh-space-shooter</a></sub>
-</p>
-
 ## Let's Build Something That Plays Well
 
 <p align="center">
