@@ -1,0 +1,174 @@
+name: Update contribution space shooter
+
+on:
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: dev0910-space-shooter
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUTF8: "1"
+    outputs:
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
+      artifact-digest: ${{ steps.upload.outputs.artifact-digest }}
+    steps:
+      - name: Check out trusted generator source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12.13"
+
+      - name: Install hash-locked generator
+        run: >-
+          python -m pip install
+          --disable-pip-version-check
+          --only-binary=:all:
+          --require-hashes
+          --requirement .github/space-shooter-requirements.txt
+
+      - name: Test deterministic rendering and validators
+        run: python -m unittest discover -s .github/scripts/tests -v
+
+      - name: Generate and validate profile assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python .github/scripts/render-space-shooter.py
+          --username "${{ github.repository_owner }}"
+          --output-dir "${{ runner.temp }}/profile-assets"
+
+      - name: Verify the artifact file set
+        shell: bash
+        env:
+          ASSET_DIR: ${{ runner.temp }}/profile-assets
+        run: |
+          set -euo pipefail
+          mapfile -d '' entries < <(find "$ASSET_DIR" -mindepth 1 -maxdepth 1 -print0 | sort -z)
+          [[ ${#entries[@]} -eq 2 ]]
+          [[ -f "$ASSET_DIR/space-shooter.webp" && ! -L "$ASSET_DIR/space-shooter.webp" ]]
+          [[ -f "$ASSET_DIR/space-shooter-static.png" && ! -L "$ASSET_DIR/space-shooter-static.png" ]]
+
+      - name: Upload immutable profile assets
+        id: upload
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: profile-assets
+          path: ${{ runner.temp }}/profile-assets
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
+
+  publish:
+    needs: generate
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download this run's immutable artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          artifact-ids: ${{ needs.generate.outputs.artifact-id }}
+          path: ${{ runner.temp }}/download
+          merge-multiple: true
+
+      - name: Validate and publish the isolated asset branch
+        shell: bash
+        env:
+          ASSET_DIR: ${{ runner.temp }}/download
+          EXPECTED_ARTIFACT_DIGEST: ${{ needs.generate.outputs.artifact-digest }}
+          GITHUB_TOKEN: ${{ github.token }}
+          EXPECTED_REPOSITORY: Dev0910/Dev0910
+          ASSET_REF: refs/heads/profile-assets
+        run: |
+          set -euo pipefail
+
+          [[ "$GITHUB_REPOSITORY" == "$EXPECTED_REPOSITORY" ]]
+          [[ "$ASSET_REF" == "refs/heads/profile-assets" ]]
+          [[ "$EXPECTED_ARTIFACT_DIGEST" =~ ^[0-9a-f]{64}$ ]]
+
+          mapfile -d '' entries < <(find "$ASSET_DIR" -mindepth 1 -maxdepth 1 -print0 | sort -z)
+          [[ ${#entries[@]} -eq 2 ]]
+
+          webp="$ASSET_DIR/space-shooter.webp"
+          png="$ASSET_DIR/space-shooter-static.png"
+          [[ -f "$webp" && ! -L "$webp" ]]
+          [[ -f "$png" && ! -L "$png" ]]
+
+          webp_size=$(stat -c %s "$webp")
+          png_size=$(stat -c %s "$png")
+          (( webp_size > 0 && webp_size <= 3 * 1024 * 1024 ))
+          (( png_size > 0 && png_size <= 1024 * 1024 ))
+          (( webp_size + png_size <= 4 * 1024 * 1024 ))
+
+          [[ "$(head -c 4 "$webp")" == "RIFF" ]]
+          [[ "$(dd if="$webp" bs=1 skip=8 count=4 status=none)" == "WEBP" ]]
+          [[ "$(od -An -tx1 -N8 "$png" | tr -d ' \n')" == "89504e470d0a1a0a" ]]
+
+          work_dir=$(mktemp -d)
+          trap 'rm -rf "$work_dir"' EXIT
+          git init --quiet "$work_dir"
+          cd "$work_dir"
+
+          remote_url="https://github.com/${GITHUB_REPOSITORY}.git"
+          git remote add origin "$remote_url"
+          auth_header=$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 -w0)
+          git config --local http.https://github.com/.extraheader "AUTHORIZATION: basic $auth_header"
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          remote_line=$(git ls-remote --heads origin "$ASSET_REF")
+          old_sha=""
+          old_tree=""
+          if [[ -n "$remote_line" ]]; then
+            [[ $(printf '%s\n' "$remote_line" | wc -l) -eq 1 ]]
+            old_sha=${remote_line%%[[:space:]]*}
+            [[ "$old_sha" =~ ^[0-9a-f]{40,64}$ ]]
+            git fetch --quiet --no-tags --depth=1 origin "$old_sha"
+            old_tree=$(git show -s --format=%T FETCH_HEAD)
+          fi
+
+          png_blob=$(git hash-object -w -- "$png")
+          webp_blob=$(git hash-object -w -- "$webp")
+          new_tree=$(
+            printf '100644 blob %s\tspace-shooter-static.png\n100644 blob %s\tspace-shooter.webp\n' \
+              "$png_blob" "$webp_blob" | git mktree
+          )
+
+          if [[ -n "$old_tree" && "$new_tree" == "$old_tree" ]]; then
+            echo "Profile assets are unchanged; skipping branch update."
+            {
+              echo "### Contribution Space Shooter"
+              echo "Assets unchanged at \`$old_sha\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          new_commit=$(printf '%s\n' "chore: refresh contribution space shooter" | git commit-tree "$new_tree")
+          git push --porcelain \
+            "--force-with-lease=${ASSET_REF}:${old_sha}" \
+            origin "${new_commit}:${ASSET_REF}"
+
+          {
+            echo "### Contribution Space Shooter"
+            echo "Published \`$new_commit\` to \`$ASSET_REF\`."
+            if [[ -n "$old_sha" ]]; then
+              echo "Replaced \`$old_sha\` using an exact force-with-lease."
+            else
+              echo "Created the asset branch with an empty expected lease."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
