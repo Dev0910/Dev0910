@@ -31,15 +31,22 @@ SHIP_TOP = 190
 SHIP_SIZE = 32
 
 HOLD_FRAMES = 18
-MOVE_FRAMES = 2
-BEAM_FRAMES = 2
-EXPLOSION_FRAMES = 2
+MOVE_FRAMES = 1
+BULLET_FRAMES = 3
+EXPLOSION_FRAMES = 1
 RESPAWN_FRAMES = 12
 
 BACKGROUND = (13, 17, 23)
 CYAN = (34, 211, 238)
 PURPLE = (167, 139, 250)
-BRIGHTNESS = (0.50, 0.65, 0.78, 0.90, 1.00)
+BULLET_COLOR = (255, 223, 0)
+GITHUB_GREENS = (
+    (14, 68, 41),
+    (0, 109, 50),
+    (38, 166, 65),
+    (57, 211, 83),
+    (87, 242, 135),
+)
 EXPECTED_ASSET_NAMES = {"space-shooter.webp", "space-shooter-static.png"}
 
 WORD = "DEV PATEL"
@@ -95,6 +102,12 @@ WORD_COLUMN_BY_X = {
     WORD_START_COLUMN + index: column for index, column in enumerate(WORD_COLUMNS)
 }
 OCCUPIED_COLUMNS = tuple(x for x, column in WORD_COLUMN_BY_X.items() if any(column))
+WORD_BLOCKS = tuple(
+    (x, row)
+    for x, column in WORD_COLUMN_BY_X.items()
+    for row, enabled in enumerate(column)
+    if enabled
+)
 WORD_BLOCK_COUNT = sum(sum(column) for column in WORD_COLUMNS)
 
 if len(WORD_COLUMNS) != 49 or len(OCCUPIED_COLUMNS) != 40 or WORD_BLOCK_COUNT != 122:
@@ -168,15 +181,16 @@ def load_contribution_data(username: str, raw_input: Path | None = None) -> dict
 
 
 def build_attack_order(
-    columns: Sequence[int] | None = None, seed: int = RANDOM_SEED
-) -> tuple[int, ...]:
-    remaining = set(OCCUPIED_COLUMNS if columns is None else columns)
+    blocks: Sequence[tuple[int, int]] | None = None, seed: int = RANDOM_SEED
+) -> tuple[tuple[int, int], ...]:
+    remaining = set(WORD_BLOCKS if blocks is None else blocks)
     current_x = 25
-    order: list[int] = []
+    order: list[tuple[int, int]] = []
     rng = random.Random(seed)
 
     while remaining:
-        candidates = sorted(remaining, key=lambda x: (abs(x - current_x), x))[:8]
+        columns = {column for column, _ in remaining}
+        candidates = sorted(columns, key=lambda x: (abs(x - current_x), x))[:8]
         weights = []
         for candidate in candidates:
             distance = abs(candidate - current_x)
@@ -187,16 +201,18 @@ def build_attack_order(
             else:
                 weights.append(1)
         target = rng.choices(candidates, weights=weights, k=1)[0]
-        order.append(target)
-        remaining.remove(target)
+        target_row = max(row for column, row in remaining if column == target)
+        target_block = (target, target_row)
+        order.append(target_block)
+        remaining.remove(target_block)
         current_x = target
 
     return tuple(order)
 
 
 def expected_frame_count() -> int:
-    attack_frames = MOVE_FRAMES + BEAM_FRAMES + EXPLOSION_FRAMES
-    return HOLD_FRAMES + len(OCCUPIED_COLUMNS) * attack_frames + RESPAWN_FRAMES
+    attack_frames = MOVE_FRAMES + BULLET_FRAMES + EXPLOSION_FRAMES
+    return HOLD_FRAMES + WORD_BLOCK_COUNT * attack_frames + RESPAWN_FRAMES
 
 
 def expected_duration_ms() -> int:
@@ -217,9 +233,8 @@ def _blend(first: tuple[int, int, int], second: tuple[int, int, int], amount: fl
 
 
 def _column_color(column: int, level: int, visibility: float = 1.0) -> tuple[int, int, int]:
-    hue = _blend(CYAN, PURPLE, column / (CALENDAR_WEEKS - 1))
-    bright = tuple(round(channel * BRIGHTNESS[level]) for channel in hue)
-    return _blend(BACKGROUND, bright, visibility)
+    del column
+    return _blend(BACKGROUND, GITHUB_GREENS[level], visibility)
 
 
 def _cell_position(column: int, row: int) -> tuple[int, int]:
@@ -249,23 +264,19 @@ def _draw_starfield(draw: Any) -> None:
 def _draw_word(
     draw: Any,
     levels: dict[int, int],
-    live_columns: set[int],
+    live_blocks: set[tuple[int, int]],
     visibility: float = 1.0,
 ) -> None:
-    for column in live_columns:
-        bits = WORD_COLUMN_BY_X[column]
+    for column, row in sorted(live_blocks):
         level = levels[column]
         color = _column_color(column, level, visibility)
-        for row, enabled in enumerate(bits):
-            if not enabled:
-                continue
-            x, y = _cell_position(column, row)
-            draw.rounded_rectangle(
-                (x, y, x + CELL_SIZE, y + CELL_SIZE), radius=2, fill=color
-            )
-            if level > 0 and visibility > 0.55:
-                highlight = _blend(color, (255, 255, 255), 0.18)
-                draw.line((x + 2, y + 1, x + CELL_SIZE - 2, y + 1), fill=highlight)
+        x, y = _cell_position(column, row)
+        draw.rounded_rectangle(
+            (x, y, x + CELL_SIZE, y + CELL_SIZE), radius=2, fill=color
+        )
+        if level > 0 and visibility > 0.55:
+            highlight = _blend(color, (255, 255, 255), 0.18)
+            draw.line((x + 2, y + 1, x + CELL_SIZE - 2, y + 1), fill=highlight)
 
 
 def _draw_unity_ship(draw: Any, center_x: float) -> None:
@@ -284,48 +295,44 @@ def _draw_unity_ship(draw: Any, center_x: float) -> None:
     )
 
 
-def _draw_beam(draw: Any, column: int, level: int, phase: int) -> None:
+def _draw_bullet(draw: Any, column: int, row: int, phase: int) -> None:
     center = round(_column_center(column))
-    streak_offsets = (0, -3, 3, -6, 6)[: level + 1]
-    target_rows = [row for row, enabled in enumerate(WORD_COLUMN_BY_X[column]) if enabled]
-    target_y = _cell_position(column, min(target_rows))[1] + CELL_SIZE
-    beam_color = _blend(CYAN, PURPLE, 0.35 + 0.25 * phase)
-    for offset in streak_offsets:
-        draw.line(
-            (center + offset, SHIP_TOP, center + offset, target_y),
-            fill=beam_color,
-            width=2 if offset == 0 else 1,
-        )
+    _, block_y = _cell_position(column, row)
+    target_y = block_y + CELL_SIZE // 2
+    progress = _ease((phase + 1) / BULLET_FRAMES)
+    bullet_y = round(_lerp(SHIP_TOP, target_y, progress))
+    draw.rounded_rectangle(
+        (center - 2, bullet_y - 5, center + 2, bullet_y + 2),
+        radius=2,
+        fill=BULLET_COLOR,
+    )
+    trail_color = _blend(BACKGROUND, BULLET_COLOR, 0.45)
+    draw.line((center, bullet_y + 3, center, bullet_y + 10), fill=trail_color, width=2)
 
 
-def _draw_explosion(draw: Any, column: int, level: int, phase: int) -> None:
+def _draw_explosion(draw: Any, column: int, row: int, level: int, phase: int) -> None:
     color = _blend(_column_color(column, level), (255, 255, 255), 0.30)
-    directions = ((-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1))
-    radius = 3 + phase * 4
-    intensity = level + 1
-
-    for row, enabled in enumerate(WORD_COLUMN_BY_X[column]):
-        if not enabled:
-            continue
-        x, y = _cell_position(column, row)
-        center_x = x + CELL_SIZE // 2
-        center_y = y + CELL_SIZE // 2
-        for dx, dy in directions[:intensity]:
-            particle_x = center_x + dx * radius
-            particle_y = center_y + dy * radius
-            draw.rectangle(
-                (particle_x - 1, particle_y - 1, particle_x + 1, particle_y + 1),
-                fill=color,
-            )
+    directions = ((-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (1, -1))
+    radius = 4 + phase * 3
+    x, y = _cell_position(column, row)
+    center_x = x + CELL_SIZE // 2
+    center_y = y + CELL_SIZE // 2
+    for dx, dy in directions:
+        particle_x = center_x + dx * radius
+        particle_y = center_y + dy * radius
+        draw.rectangle(
+            (particle_x - 1, particle_y - 1, particle_x + 1, particle_y + 1),
+            fill=color,
+        )
 
 
 def render_frame(
     levels: dict[int, int],
-    live_columns: set[int],
+    live_blocks: set[tuple[int, int]],
     ship_center_x: float,
     *,
-    beam: tuple[int, int] | None = None,
-    explosion: tuple[int, int] | None = None,
+    bullet: tuple[int, int, int] | None = None,
+    explosion: tuple[int, int, int] | None = None,
     visibility: float = 1.0,
 ) -> Any:
     from PIL import Image, ImageDraw
@@ -333,48 +340,58 @@ def render_frame(
     image = Image.new("RGB", (WIDTH, HEIGHT), BACKGROUND)
     draw = ImageDraw.Draw(image)
     _draw_starfield(draw)
-    _draw_word(draw, levels, live_columns, visibility)
-    if beam is not None:
-        column, phase = beam
-        _draw_beam(draw, column, levels[column], phase)
+    _draw_word(draw, levels, live_blocks, visibility)
+    if bullet is not None:
+        column, row, phase = bullet
+        _draw_bullet(draw, column, row, phase)
     if explosion is not None:
-        column, phase = explosion
-        _draw_explosion(draw, column, levels[column], phase)
+        column, row, phase = explosion
+        _draw_explosion(draw, column, row, levels[column], phase)
     _draw_unity_ship(draw, ship_center_x)
     return image
 
 
 def generate_frames(levels: dict[int, int]) -> Iterator[Any]:
-    live_columns = set(OCCUPIED_COLUMNS)
+    live_blocks = set(WORD_BLOCKS)
     initial_ship_x = _column_center(25)
     ship_x = initial_ship_x
 
     for _ in range(HOLD_FRAMES):
-        yield render_frame(levels, live_columns, ship_x)
+        yield render_frame(levels, live_blocks, ship_x)
 
-    for target in build_attack_order():
-        target_x = _column_center(target)
+    for target_column, target_row in build_attack_order():
+        target_x = _column_center(target_column)
         start_x = ship_x
         for frame in range(MOVE_FRAMES):
             progress = _ease((frame + 1) / MOVE_FRAMES)
             ship_x = _lerp(start_x, target_x, progress)
-            yield render_frame(levels, live_columns, ship_x)
+            yield render_frame(levels, live_blocks, ship_x)
 
-        for phase in range(BEAM_FRAMES):
-            yield render_frame(levels, live_columns, target_x, beam=(target, phase))
+        for phase in range(BULLET_FRAMES):
+            yield render_frame(
+                levels,
+                live_blocks,
+                target_x,
+                bullet=(target_column, target_row, phase),
+            )
 
-        live_columns.remove(target)
+        live_blocks.remove((target_column, target_row))
         for phase in range(EXPLOSION_FRAMES):
-            yield render_frame(levels, live_columns, target_x, explosion=(target, phase))
+            yield render_frame(
+                levels,
+                live_blocks,
+                target_x,
+                explosion=(target_column, target_row, phase),
+            )
 
         ship_x = target_x
 
-    all_columns = set(OCCUPIED_COLUMNS)
+    all_blocks = set(WORD_BLOCKS)
     for frame in range(RESPAWN_FRAMES):
         progress = _ease((frame + 1) / RESPAWN_FRAMES)
         return_x = _lerp(ship_x, initial_ship_x, progress)
         yield render_frame(
-            levels, all_columns, return_x, visibility=(frame + 1) / RESPAWN_FRAMES
+            levels, all_blocks, return_x, visibility=(frame + 1) / RESPAWN_FRAMES
         )
 
 

@@ -69,8 +69,12 @@ class WordmarkTests(unittest.TestCase):
         first = render_space_shooter.build_attack_order()
         second = render_space_shooter.build_attack_order()
         self.assertEqual(first, second)
-        self.assertEqual(set(first), set(render_space_shooter.OCCUPIED_COLUMNS))
-        self.assertEqual(len(first), 40)
+        self.assertEqual(set(first), set(render_space_shooter.WORD_BLOCKS))
+        self.assertEqual(len(first), 122)
+
+        for column in render_space_shooter.OCCUPIED_COLUMNS:
+            attacked_rows = [row for attacked_column, row in first if attacked_column == column]
+            self.assertEqual(attacked_rows, sorted(attacked_rows, reverse=True))
 
     def test_frame_zero_contains_every_wordmark_block_and_unity_ship(self) -> None:
         levels = render_space_shooter.contribution_levels_by_column(_raw_contributions())
@@ -93,6 +97,12 @@ class WordmarkTests(unittest.TestCase):
         }
         cyan_pixels = color_counts.get(render_space_shooter.CYAN, 0)
         self.assertGreater(cyan_pixels, 25)
+        first_column, first_row = render_space_shooter.WORD_BLOCKS[0]
+        x, y = render_space_shooter._cell_position(first_column, first_row)
+        self.assertEqual(
+            frame.getpixel((x + render_space_shooter.CELL_SIZE // 2, y + render_space_shooter.CELL_SIZE // 2)),
+            render_space_shooter.GITHUB_GREENS[0],
+        )
 
     def test_animation_contract_is_density_independent_and_loops(self) -> None:
         counts = []
@@ -110,8 +120,8 @@ class WordmarkTests(unittest.TestCase):
             self.assertEqual(first.tobytes(), last.tobytes())
 
         self.assertEqual(counts, [render_space_shooter.expected_frame_count()] * 2)
-        self.assertGreaterEqual(render_space_shooter.expected_duration_ms(), 17_000)
-        self.assertLessEqual(render_space_shooter.expected_duration_ms(), 19_000)
+        self.assertGreaterEqual(render_space_shooter.expected_duration_ms(), 40_000)
+        self.assertLessEqual(render_space_shooter.expected_duration_ms(), 45_000)
 
 
 class ValidationTests(unittest.TestCase):
@@ -208,11 +218,18 @@ class DeterminismTests(unittest.TestCase):
             changed.write_text(json.dumps(_raw_contributions(4)), encoding="utf-8")
 
             short_columns = render_space_shooter.OCCUPIED_COLUMNS[:4]
+            short_blocks = tuple(
+                block
+                for block in render_space_shooter.WORD_BLOCKS
+                if block[0] in short_columns
+            )
             patches = (
                 mock.patch.object(render_space_shooter, "OCCUPIED_COLUMNS", short_columns),
+                mock.patch.object(render_space_shooter, "WORD_BLOCKS", short_blocks),
+                mock.patch.object(render_space_shooter, "WORD_BLOCK_COUNT", len(short_blocks)),
                 mock.patch.object(render_space_shooter, "HOLD_FRAMES", 1),
                 mock.patch.object(render_space_shooter, "MOVE_FRAMES", 1),
-                mock.patch.object(render_space_shooter, "BEAM_FRAMES", 1),
+                mock.patch.object(render_space_shooter, "BULLET_FRAMES", 1),
                 mock.patch.object(render_space_shooter, "EXPLOSION_FRAMES", 1),
                 mock.patch.object(render_space_shooter, "RESPAWN_FRAMES", 2),
             )
