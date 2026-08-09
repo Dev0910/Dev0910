@@ -3,7 +3,7 @@
     <source media="(prefers-reduced-motion: reduce)" srcset="https://raw.githubusercontent.com/Dev0910/Dev0910/profile-assets/space-shooter-static.png">
     <source type="image/webp" srcset="https://raw.githubusercontent.com/Dev0910/Dev0910/profile-assets/space-shooter.webp">
     <img src="https://raw.githubusercontent.com/Dev0910/Dev0910/profile-assets/space-shooter-static.png"
-         alt="Animated cyan-and-purple space shooter spelling DEV PATEL; a pixel-art Unity ship clears blocks powered by Dev Patel's public GitHub contribution activity."
+         alt="Animated GitHub-green space shooter spelling DEV PATEL; a Unity logo ship clears blocks powered by Dev Patel's public GitHub contribution activity."
          width="100%">
   </picture>
 </p>
