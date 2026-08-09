@@ -101,8 +101,8 @@ def _unity_logo() -> Any:
     from PIL import Image
 
     with Image.open(UNITY_LOGO_PATH) as source:
-        if source.format != "PNG" or source.size != (64, 64):
-            raise ValueError("Unity logo must be a 64x64 PNG")
+        if source.format != "PNG" or source.size != (48, 48):
+            raise ValueError("Unity logo must be a tightly cropped 48x48 PNG")
         return source.convert("RGBA").resize(
             (SHIP_SIZE, SHIP_SIZE), Image.Resampling.LANCZOS
         )
