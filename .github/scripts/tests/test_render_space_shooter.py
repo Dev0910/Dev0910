@@ -10,7 +10,6 @@ from unittest import mock
 
 from PIL import Image
 
-
 SCRIPT_PATH = Path(__file__).resolve().parents[1] / "render-space-shooter.py"
 SPEC = importlib.util.spec_from_file_location("render_space_shooter", SCRIPT_PATH)
 assert SPEC and SPEC.loader
@@ -21,24 +20,98 @@ SPEC.loader.exec_module(render_space_shooter)
 def _animated_webp(path: Path, size: tuple[int, int] = (860, 230)) -> None:
     first = Image.new("RGB", size, "#0d1117")
     second = Image.new("RGB", size, "#22d3ee")
-    first.save(path, "WEBP", save_all=True, append_images=[second], duration=40, loop=0)
+    first.save(path, "WEBP", save_all=True, append_images=[second], duration=66, loop=0)
 
 
-def _raw_contributions(level: int) -> dict:
+def _raw_contributions(level: int = 0, active_week: int = 25) -> dict:
     weeks = []
     for week in range(52):
         days = []
         for day in range(7):
-            active = week == 25 and day == 3
+            active = week == active_week and day == 3
             days.append(
                 {
-                    "date": f"2026-01-{day + 1:02d}",
+                    "date": f"2026-W{week:02d}-{day}",
                     "count": level if active else 0,
                     "level": level if active else 0,
                 }
             )
         weeks.append({"days": days})
     return {"username": "Dev0910", "total_contributions": level, "weeks": weeks}
+
+
+class WordmarkTests(unittest.TestCase):
+    def test_wordmark_contract(self) -> None:
+        self.assertEqual(len(render_space_shooter.WORD_COLUMNS), 49)
+        self.assertEqual(render_space_shooter.WORD_START_COLUMN, 1)
+        self.assertEqual(len(render_space_shooter.OCCUPIED_COLUMNS), 40)
+        self.assertEqual(render_space_shooter.WORD_BLOCK_COUNT, 122)
+
+    def test_week_groups_cover_every_week_once(self) -> None:
+        groups = render_space_shooter.week_groups_for_word_columns()
+        self.assertEqual(len(groups), 40)
+        self.assertEqual([week for group in groups for week in group], list(range(52)))
+
+    def test_levels_fold_chronologically_with_max_intensity(self) -> None:
+        data = _raw_contributions(level=4, active_week=51)
+        mapped = render_space_shooter.contribution_levels_by_column(data)
+        self.assertEqual(mapped[render_space_shooter.OCCUPIED_COLUMNS[-1]], 4)
+        self.assertTrue(all(level == 0 for level in list(mapped.values())[:-1]))
+
+    def test_contribution_levels_zero_through_four_are_supported(self) -> None:
+        for level in range(5):
+            mapped = render_space_shooter.contribution_levels_by_column(
+                _raw_contributions(level=level)
+            )
+            self.assertIn(level, mapped.values())
+
+    def test_attack_order_is_seeded_and_complete(self) -> None:
+        first = render_space_shooter.build_attack_order()
+        second = render_space_shooter.build_attack_order()
+        self.assertEqual(first, second)
+        self.assertEqual(set(first), set(render_space_shooter.OCCUPIED_COLUMNS))
+        self.assertEqual(len(first), 40)
+
+    def test_frame_zero_contains_every_wordmark_block_and_unity_ship(self) -> None:
+        levels = render_space_shooter.contribution_levels_by_column(_raw_contributions())
+        frame = next(render_space_shooter.generate_frames(levels))
+        for column, bits in render_space_shooter.WORD_COLUMN_BY_X.items():
+            for row, enabled in enumerate(bits):
+                if not enabled:
+                    continue
+                x, y = render_space_shooter._cell_position(column, row)
+                self.assertNotEqual(
+                    frame.getpixel((x + render_space_shooter.CELL_SIZE // 2, y + render_space_shooter.CELL_SIZE // 2)),
+                    render_space_shooter.BACKGROUND,
+                )
+
+        color_counts = {
+            color: count
+            for count, color in frame.getcolors(
+                maxcolors=render_space_shooter.WIDTH * render_space_shooter.HEIGHT
+            )
+        }
+        cyan_pixels = color_counts.get(render_space_shooter.CYAN, 0)
+        self.assertGreater(cyan_pixels, 25)
+
+    def test_animation_contract_is_density_independent_and_loops(self) -> None:
+        counts = []
+        for level in (0, 4):
+            levels = render_space_shooter.contribution_levels_by_column(
+                _raw_contributions(level=level)
+            )
+            iterator = render_space_shooter.generate_frames(levels)
+            first = next(iterator)
+            last = first
+            count = 1
+            for last in iterator:
+                count += 1
+            counts.append(count)
+            self.assertEqual(first.tobytes(), last.tobytes())
+
+        self.assertEqual(counts, [render_space_shooter.expected_frame_count()] * 2)
+        self.assertGreaterEqual(render_space_shooter.expected_duration_ms(), 17_000)
+        self.assertLessEqual(render_space_shooter.expected_duration_ms(), 19_000)
 
 
 class ValidationTests(unittest.TestCase):
@@ -51,17 +124,16 @@ class ValidationTests(unittest.TestCase):
 
             render_space_shooter.validate_webp_and_create_static(webp, png)
 
-            self.assertTrue(png.is_file())
             with Image.open(png) as image:
                 self.assertEqual(image.format, "PNG")
                 self.assertEqual(image.size, (860, 230))
+                self.assertEqual(getattr(image, "n_frames", 1), 1)
 
     def test_rejects_non_webp_content(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             webp = root / "space-shooter.webp"
             webp.write_bytes(b"not-a-webp")
-
             with self.assertRaisesRegex(ValueError, "not a WebP"):
                 render_space_shooter.validate_webp_and_create_static(
                     webp, root / "space-shooter-static.png"
@@ -72,7 +144,6 @@ class ValidationTests(unittest.TestCase):
             root = Path(directory)
             webp = root / "space-shooter.webp"
             _animated_webp(webp, (320, 200))
-
             with self.assertRaisesRegex(ValueError, "unexpected image dimensions"):
                 render_space_shooter.validate_webp_and_create_static(
                     webp, root / "space-shooter-static.png"
@@ -83,7 +154,6 @@ class ValidationTests(unittest.TestCase):
             root = Path(directory)
             webp = root / "space-shooter.webp"
             Image.new("RGB", (860, 230), "black").save(webp, "WEBP")
-
             with self.assertRaisesRegex(ValueError, "not animated"):
                 render_space_shooter.validate_webp_and_create_static(
                     webp, root / "space-shooter-static.png"
@@ -94,12 +164,34 @@ class ValidationTests(unittest.TestCase):
             root = Path(directory)
             webp = root / "space-shooter.webp"
             _animated_webp(webp)
+            with (
+                mock.patch.object(render_space_shooter, "WEBP_HARD_LIMIT", 1),
+                self.assertRaisesRegex(ValueError, "invalid size"),
+            ):
+                render_space_shooter.validate_webp_and_create_static(
+                    webp, root / "space-shooter-static.png"
+                )
 
-            with mock.patch.object(render_space_shooter, "WEBP_HARD_LIMIT", 1):
-                with self.assertRaisesRegex(ValueError, "invalid size"):
-                    render_space_shooter.validate_webp_and_create_static(
-                        webp, root / "space-shooter-static.png"
-                    )
+    def test_rejects_extra_and_wrong_asset_filenames(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "space-shooter.webp").write_bytes(b"webp")
+            (root / "wrong.png").write_bytes(b"png")
+            (root / "extra.txt").write_text("extra", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "expected filenames"):
+                render_space_shooter.validate_asset_file_set(root)
+
+    def test_rejects_symlinked_asset(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            webp = root / "space-shooter.webp"
+            png = root / "space-shooter-static.png"
+            webp.write_bytes(b"webp")
+            png.write_bytes(b"png")
+            with mock.patch.object(Path, "is_symlink", autospec=True) as is_symlink:
+                is_symlink.side_effect = lambda path: path.name == "space-shooter.webp"
+                with self.assertRaisesRegex(ValueError, "regular file"):
+                    render_space_shooter.validate_asset_file_set(root)
 
 
 @unittest.skipUnless(
@@ -110,23 +202,35 @@ class DeterminismTests(unittest.TestCase):
     def test_fixed_input_is_reproducible_and_changed_input_changes_output(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            first_data = root / "first.json"
-            changed_data = root / "changed.json"
-            first_data.write_text(json.dumps(_raw_contributions(1)), encoding="utf-8")
-            changed_data.write_text(json.dumps(_raw_contributions(4)), encoding="utf-8")
+            fixed = root / "fixed.json"
+            changed = root / "changed.json"
+            fixed.write_text(json.dumps(_raw_contributions(1)), encoding="utf-8")
+            changed.write_text(json.dumps(_raw_contributions(4)), encoding="utf-8")
 
-            # Five FPS preserves the deterministic code path while keeping this
-            # regression test fast; production remains pinned to 25 FPS.
-            with mock.patch.object(render_space_shooter, "FPS", 5):
+            short_columns = render_space_shooter.OCCUPIED_COLUMNS[:4]
+            patches = (
+                mock.patch.object(render_space_shooter, "OCCUPIED_COLUMNS", short_columns),
+                mock.patch.object(render_space_shooter, "HOLD_FRAMES", 1),
+                mock.patch.object(render_space_shooter, "MOVE_FRAMES", 1),
+                mock.patch.object(render_space_shooter, "BEAM_FRAMES", 1),
+                mock.patch.object(render_space_shooter, "EXPLOSION_FRAMES", 1),
+                mock.patch.object(render_space_shooter, "RESPAWN_FRAMES", 2),
+            )
+            for patch in patches:
+                patch.start()
+            try:
                 first_webp, _ = render_space_shooter.render_assets(
-                    "Dev0910", root / "first", first_data
+                    "Dev0910", root / "first", fixed
                 )
                 second_webp, _ = render_space_shooter.render_assets(
-                    "Dev0910", root / "second", first_data
+                    "Dev0910", root / "second", fixed
                 )
                 changed_webp, _ = render_space_shooter.render_assets(
-                    "Dev0910", root / "changed", changed_data
+                    "Dev0910", root / "changed-output", changed
                 )
+            finally:
+                for patch in reversed(patches):
+                    patch.stop()
 
             digest = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
             self.assertEqual(digest(first_webp), digest(second_webp))
