@@ -40,7 +40,6 @@ RESPAWN_FRAMES = 12
 
 BACKGROUND = (13, 17, 23)
 CYAN = (34, 211, 238)
-PURPLE = (167, 139, 250)
 BULLET_COLOR = (255, 223, 0)
 GITHUB_GREENS = (
     (14, 68, 41),
@@ -271,18 +270,8 @@ def _draw_word(
             draw.line((x + 2, y + 1, x + CELL_SIZE - 2, y + 1), fill=highlight)
 
 
-def _draw_unity_ship(image: Any, draw: Any, center_x: float) -> None:
+def _draw_unity_ship(image: Any, center_x: float) -> None:
     left = round(center_x - SHIP_SIZE / 2)
-    center = round(center_x)
-    for thruster_center in (center - 6, center + 6):
-        draw.polygon(
-            (
-                (thruster_center - 4, SHIP_TOP + SHIP_SIZE),
-                (thruster_center + 4, SHIP_TOP + SHIP_SIZE),
-                (thruster_center, HEIGHT - 1),
-            ),
-            fill=PURPLE,
-        )
     logo = _unity_logo()
     image.paste(logo, (left, SHIP_TOP), logo)
 
@@ -339,7 +328,7 @@ def render_frame(
     if explosion is not None:
         column, row, phase = explosion
         _draw_explosion(draw, column, row, levels[column], phase)
-    _draw_unity_ship(image, draw, ship_center_x)
+    _draw_unity_ship(image, ship_center_x)
     return image
 
 

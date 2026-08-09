@@ -109,19 +109,6 @@ class WordmarkTests(unittest.TestCase):
             if color != render_space_shooter.BACKGROUND
         )
         self.assertGreater(non_background_pixels, 500)
-        thruster_y = render_space_shooter.SHIP_TOP + 34
-        self.assertEqual(
-            frame.getpixel((ship_center - 6, thruster_y)),
-            render_space_shooter.PURPLE,
-        )
-        self.assertEqual(
-            frame.getpixel((ship_center + 6, thruster_y)),
-            render_space_shooter.PURPLE,
-        )
-        self.assertEqual(
-            frame.getpixel((ship_center, thruster_y)),
-            render_space_shooter.BACKGROUND,
-        )
         first_column, first_row = render_space_shooter.WORD_BLOCKS[0]
         x, y = render_space_shooter._cell_position(first_column, first_row)
         self.assertEqual(
