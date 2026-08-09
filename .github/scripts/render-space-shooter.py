@@ -28,7 +28,7 @@ CELL_SIZE = 12
 CELL_SPACING = 3
 CELL_STEP = CELL_SIZE + CELL_SPACING
 PADDING = 40
-SHIP_TOP = 190
+SHIP_TOP = 186
 SHIP_SIZE = 32
 UNITY_LOGO_PATH = Path(__file__).resolve().parents[1] / "assets" / "unity-logo.png"
 
@@ -274,10 +274,15 @@ def _draw_word(
 def _draw_unity_ship(image: Any, draw: Any, center_x: float) -> None:
     left = round(center_x - SHIP_SIZE / 2)
     center = round(center_x)
-    draw.polygon(
-        ((center - 4, SHIP_TOP + 29), (center + 4, SHIP_TOP + 29), (center, HEIGHT - 1)),
-        fill=PURPLE,
-    )
+    for thruster_center in (center - 6, center + 6):
+        draw.polygon(
+            (
+                (thruster_center - 4, SHIP_TOP + SHIP_SIZE),
+                (thruster_center + 4, SHIP_TOP + SHIP_SIZE),
+                (thruster_center, HEIGHT - 1),
+            ),
+            fill=PURPLE,
+        )
     logo = _unity_logo()
     image.paste(logo, (left, SHIP_TOP), logo)
 
