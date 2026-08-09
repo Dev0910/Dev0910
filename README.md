@@ -157,8 +157,20 @@ I care about responsive mechanics, balanced progression, clear architecture, and
   </tr>
 </table>
 
+### Contribution Space Shooter
+
 <p align="center">
-  <img src="assets/metrics/activity-graph.svg" alt="Weekly GitHub contribution activity for Dev Patel" width="100%">
+  <picture>
+    <source media="(prefers-reduced-motion: reduce)" srcset="https://raw.githubusercontent.com/Dev0910/Dev0910/profile-assets/space-shooter-static.png">
+    <source type="image/webp" srcset="https://raw.githubusercontent.com/Dev0910/Dev0910/profile-assets/space-shooter.webp">
+    <img src="https://raw.githubusercontent.com/Dev0910/Dev0910/profile-assets/space-shooter-static.png"
+         alt="Space Shooter visualization of Dev Patel's public GitHub contribution calendar, with contribution cells represented as enemies."
+         width="100%">
+  </picture>
+</p>
+
+<p align="center">
+  <sub>Public GitHub contributions rendered as an arcade replay · Inspired by <a href="https://www.gitskins.com/">GitSkins</a> · Generated with <a href="https://github.com/czl9707/gh-space-shooter">gh-space-shooter</a></sub>
 </p>
 
 ## Let's Build Something That Plays Well
