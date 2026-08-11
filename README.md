@@ -47,7 +47,7 @@ I care about responsive mechanics, balanced progression, clear architecture, and
 <table>
   <tr>
     <td width="32%" align="center" valign="middle">
-      <a href="https://github.com/Dev0910/premier-cricket-go-portfolio"><img src="assets/projects/premier-cricket-go-icon.png" alt="Premier Cricket GO app icon" width="190"></a>
+      <a href="https://github.com/Dev0910/premier-cricket-go-portfolio"><img src="assets/projects/icons/premier-cricket-go-icon.webp" alt="Premier Cricket GO icon featuring a stylized cricketer" width="190"></a>
     </td>
     <td width="68%" valign="top">
       <h3><a href="https://github.com/Dev0910/premier-cricket-go-portfolio">Premier Cricket GO</a></h3>
@@ -67,13 +67,13 @@ I care about responsive mechanics, balanced progression, clear architecture, and
 <table>
   <tr>
     <td width="50%" valign="top">
-      <a href="https://github.com/Dev0910/Tattva-Shila"><img src="assets/projects/cards/tattva-shila-card.png" alt="Tattva Shila elemental tower defence gameplay" width="100%"></a>
+      <p align="center"><a href="https://github.com/Dev0910/Tattva-Shila"><img src="assets/projects/icons/tattva-shila-icon.webp" alt="Elemental crystal tower icon for Tattva Shila" width="190"></a></p>
       <h3 align="center"><a href="https://github.com/Dev0910/Tattva-Shila">Tattva Shila</a></h3>
       <p>Four-day game-jam tower defence built around elemental tower combinations.</p>
       <p><sub><strong>Role:</strong> Lead Game Developer · <strong>Stack:</strong> Unity, C# · <a href="https://dev0910.itch.io/tattva-shila">Play</a></sub></p>
     </td>
     <td width="50%" valign="top">
-      <a href="https://github.com/Dev0910/Undying-Havoc"><img src="assets/projects/cards/undying-havoc-card.png" alt="Undying Havoc base defence gameplay at night" width="100%"></a>
+      <p align="center"><a href="https://github.com/Dev0910/Undying-Havoc"><img src="assets/projects/icons/undying-havoc-icon.webp" alt="Wooden fortress and turret icon for Undying Havoc" width="190"></a></p>
       <h3 align="center"><a href="https://github.com/Dev0910/Undying-Havoc">Undying Havoc</a></h3>
       <p>2D survival and base defence with day/night waves, construction, upgrades, and object pooling.</p>
       <p><sub><strong>Stack:</strong> Unity, C# · <a href="https://www.youtube.com/watch?v=iRFnBLJYcYs">Gameplay</a></sub></p>
@@ -81,16 +81,30 @@ I care about responsive mechanics, balanced progression, clear architecture, and
   </tr>
   <tr>
     <td width="50%" valign="top">
-      <a href="https://github.com/Dev0910/Ping-Pong"><img src="assets/projects/cards/ping-pong-card.jpg" alt="Stylized Ping Pong table artwork" width="100%"></a>
+      <p align="center"><a href="https://github.com/Dev0910/Ping-Pong"><img src="assets/projects/icons/ping-pong-icon.webp" alt="Red and blue paddles striking a ping-pong ball" width="190"></a></p>
       <h3 align="center"><a href="https://github.com/Dev0910/Ping-Pong">Ping Pong</a></h3>
       <p>Unity 6 single-player Pong with three difficulty modes, position-based rebounds, and persistent local leaderboards.</p>
       <p><sub><strong>Stack:</strong> Unity 6, C#, Windows · <strong>Systems:</strong> AI paddle, JSON leaderboards</sub></p>
     </td>
     <td width="50%" valign="top">
-      <a href="https://github.com/Dev0910/Unity-ML-Agents-Food-Collector"><img src="assets/projects/cards/ml-agents-card.png" alt="Parallel Unity ML-Agents food collector training environments" width="100%"></a>
+      <p align="center"><a href="https://github.com/Dev0910/Unity-ML-Agents-Food-Collector"><img src="assets/projects/icons/ml-agents-icon.webp" alt="Training robot collecting a glowing orb for ML-Agents" width="190"></a></p>
       <h3 align="center"><a href="https://github.com/Dev0910/Unity-ML-Agents-Food-Collector">ML-Agents Food Collector</a></h3>
       <p>Food-collection learning sandbox with PPO, GAIL, behavioral cloning, and recorded demonstrations.</p>
       <p><sub><strong>Stack:</strong> Unity, C#, ML-Agents · <a href="https://www.youtube.com/watch?v=i1orPLHQBbU">Demo</a></sub></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <p align="center"><a href="https://dev0910.itch.io/xylaris"><img src="assets/projects/icons/xylaris-icon.webp" alt="Astronaut exploring an alien world for Xylaris" width="190"></a></p>
+      <h3 align="center"><a href="https://dev0910.itch.io/xylaris">Xylaris</a></h3>
+      <p>72-hour alien-planet survival and resource-collection game built by a four-person jam team.</p>
+      <p><sub><strong>Role:</strong> Lead Game Developer · <strong>Stack:</strong> Unity, C# · <a href="https://dev0910.itch.io/xylaris">Play</a></sub></p>
+    </td>
+    <td width="50%" valign="top">
+      <p align="center"><a href="https://00sidd00.itch.io/you"><img src="assets/projects/icons/you-icon.webp" alt="Traveler standing before a fractured time portal for YOU" width="190"></a></p>
+      <h3 align="center"><a href="https://00sidd00.itch.io/you">YOU</a></h3>
+      <p>Award-winning time-travel puzzle platformer built during the 72-hour Reimagine Game Jam.</p>
+      <p><sub><strong>Role:</strong> Developer · <strong>Stack:</strong> Unity, C# · <a href="https://00sidd00.itch.io/you">Play</a></sub></p>
     </td>
   </tr>
 </table>
